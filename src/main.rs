@@ -70,6 +70,7 @@ impl RenderState {
                 label: None,
                 required_features: wgpu::Features::empty(), //The device you have limits the features you can use
                 required_limits: wgpu::Limits::default(), //The limits field describes the limit of certain types of resource we can create
+                experimental_features: Default::default(),
                 memory_hints: MemoryHints::Performance,
                 trace: Default::default(),
             })
