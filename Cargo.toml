@@ -1,7 +1,7 @@
 [package]
 name = "wenderer"
-version = "0.5.4"
-authors = ["feng liang <feng.liang@kaust.edu.sa>"]
+version = "0.5.5"
+authors = ["feng liang <feng.liang@alumni.kaust.edu.sa>"]
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,13 +11,13 @@ image = "0.25"
 winit = "0.30"
 cgmath = { version = "0.18", features = ["swizzle"] }
 env_logger = "0.11"
-wgpu = "27.0"
+wgpu = "28.0"
 crevice = { version = "0.18.0", features = ["cgmath"] }
 futures = "0.3"
 anyhow = "1.0"
-bytemuck = { version = "1.22", features = ["derive"] }
+bytemuck = { version = "1.24", features = ["derive"] }
 rayon = "1.10"
-half = { version = "2.6", features = ["num-traits", "bytemuck"] }
+half = { version = "2.7", features = ["num-traits", "bytemuck"] }
 
 [profile.release]
 lto = true

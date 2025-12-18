@@ -167,7 +167,7 @@ impl D3Pass {
         let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("3DPass Render Pipeline Layout"),
             bind_group_layouts: &[&uniform_bind_group_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("3DPass Render Pipeline"),
@@ -212,8 +212,8 @@ impl D3Pass {
                 count: sample_count,
                 ..Default::default()
             }, // the config of this struct is the same as MultisampleState::default()
-            multiview: None,
             cache: None,
+            multiview_mask: None,
         });
         Self {
             depth_texture,
@@ -310,6 +310,7 @@ impl RenderPass for D3Pass {
             }),
             timestamp_writes: None,
             occlusion_query_set: None,
+            multiview_mask: None,
         });
         render_pass.set_pipeline(&self.render_pipeline);
         // set_vertex_buffer takes two parameters.
@@ -563,7 +564,7 @@ impl CanvasPass {
                 &tf_bind_group_layout,
                 &uniform_bind_group_layout,
             ],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
         let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
@@ -599,8 +600,8 @@ impl CanvasPass {
                 count: sample_count,
                 ..Default::default()
             },
-            multiview: None,
             cache: None,
+            multiview_mask: None,
         });
         Self {
             face_texture_bind_group_layout,
@@ -708,6 +709,7 @@ impl RenderPass for CanvasPass {
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
+            multiview_mask: None,
         });
         render_pass.set_pipeline(&self.render_pipeline);
         // set_vertex_buffer takes two parameters.
