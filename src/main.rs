@@ -275,9 +275,19 @@ impl App {
     // We also need to create a CommandEncoder to create the actual commands to send to the gpu.
     // Most modern graphics frameworks expect commands to be stored in a command buffer before being sent to the gpu.
     // The encoder builds a command buffer that we can then send to the gpu.
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Option<()> {
         let render_state = self.render_state.as_mut().unwrap();
-        let frame = render_state.surface.get_current_texture()?;
+        let frame = match render_state.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(frame)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+            wgpu::CurrentSurfaceTexture::Lost | wgpu::CurrentSurfaceTexture::Outdated => {
+                return None;
+            }
+            other => {
+                eprintln!("Failed to get surface texture: {other:?}");
+                return None;
+            }
+        };
         let frame_tex_view = frame.texture.create_view(&render_state.surface_view_desc);
         let mut encoder =
             render_state
@@ -301,7 +311,7 @@ impl App {
             .render(&frame_tex_view, None, &mut encoder);
         render_state.queue.submit(std::iter::once(encoder.finish()));
         frame.present();
-        Ok(())
+        Some(())
     }
 }
 
@@ -349,14 +359,9 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 self.update();
-                match self.render() {
-                    Ok(_) => {}
-                    // Recreate the swap_chain if lost
-                    Err(wgpu::SurfaceError::Lost) => {
-                        self.resize(self.render_state.as_ref().unwrap().size)
-                    }
-                    Err(wgpu::SurfaceError::OutOfMemory) => event_loop.exit(),
-                    Err(e) => eprintln!("Some unhandled error {e:?}"),
+                if self.render().is_none() {
+                    // Reconfigure the surface if we failed to get a texture
+                    self.resize(self.render_state.as_ref().unwrap().size);
                 }
             }
             _ => {}
