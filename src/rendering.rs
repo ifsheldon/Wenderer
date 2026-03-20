@@ -166,7 +166,7 @@ impl D3Pass {
 
         let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("3DPass Render Pipeline Layout"),
-            bind_group_layouts: &[&uniform_bind_group_layout],
+            bind_group_layouts: &[Some(&uniform_bind_group_layout)],
             immediate_size: 0,
         });
         let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
@@ -199,8 +199,8 @@ impl D3Pass {
             },
             depth_stencil: Some(DepthStencilState {
                 format: Tex::DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: face_render_config.1, // tells us when to discard a new pixel
+                depth_write_enabled: Some(true),
+                depth_compare: Some(face_render_config.1), // tells us when to discard a new pixel
                 stencil: StencilState::default(),
                 bias: DepthBiasState {
                     constant: 2, // Corresponds to bilinear filtering
@@ -559,10 +559,10 @@ impl CanvasPass {
         let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("Canvas Pass Render Pipeline Layout"),
             bind_group_layouts: &[
-                &face_texture_bind_group_layout,
-                &volume_bind_group_layout,
-                &tf_bind_group_layout,
-                &uniform_bind_group_layout,
+                Some(&face_texture_bind_group_layout),
+                Some(&volume_bind_group_layout),
+                Some(&tf_bind_group_layout),
+                Some(&uniform_bind_group_layout),
             ],
             immediate_size: 0,
         });
