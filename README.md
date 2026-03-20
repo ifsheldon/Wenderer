@@ -27,7 +27,6 @@ For now, we have simple interactions:
 * `wgsl` shaders
 
 ## TODOs
-* Ray jittering
 * Better camera
 * Configurable transfer functions
 * Configurable volumes
