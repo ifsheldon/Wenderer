@@ -51,6 +51,12 @@ fn sample_tf(scalar: f32) -> vec4<f32>{
     return textureSample(tf_tex, tf_sampler, scalar);
 }
 
+// pseudo-random hash for ray jittering to reduce banding artifacts
+fn hash(p: vec2<f32>) -> f32{
+    let h = dot(p, vec2<f32>(127.1, 311.7));
+    return fract(sin(h) * 43758.5453123);
+}
+
 // direct volume rendering shader
 @fragment
 fn fragment_shader(in : VertexOutput) -> @location(0) vec4<f32>{
@@ -61,7 +67,8 @@ fn fragment_shader(in : VertexOutput) -> @location(0) vec4<f32>{
     let start_volume_coord = textureSample(front_face_tex, front_face_sampler, in.tex_coord).rgb;
     let end_volume_coord = textureSample(back_face_tex, back_face_sampler, in.tex_coord).rgb;
     let ray_dir = normalize(end_volume_coord - start_volume_coord);
-    var position:vec3<f32> = start_volume_coord;
+    let jitter = hash(in.clip_position.xy) * uniforms.step_size;
+    var position:vec3<f32> = start_volume_coord + ray_dir * jitter;
     var composite_color:vec4<f32> = vec4<f32>(0.0);
     let max_marching_step = i32(length(end_volume_coord - start_volume_coord)/uniforms.step_size);
     let x_delta = vec3<f32>(delta, 0.0, 0.0);
