@@ -1,4 +1,4 @@
-use cgmath::{Deg, Matrix4, Point3, Vector3, perspective};
+use glam::{Mat4, Vec3, Vec4};
 use wgpu::util::DeviceExt;
 use wgpu::*;
 
@@ -6,7 +6,6 @@ use crate::data::{CanvasShaderUniforms, Uniforms};
 use crate::geometries::{Mesh3, Rectangle};
 use crate::shading::Tex;
 use crate::utils::{create_cube_fbo, load_example_transfer_function};
-use crevice::std140::AsStd140;
 use std::num::NonZeroU32;
 
 // The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems.
@@ -15,11 +14,11 @@ use std::num::NonZeroU32;
 // This matrix will scale and translate our scene from OpenGL's coordinate system to WGPU's.
 // We'll define it as follows.
 #[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: Matrix4<f32> = Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
+pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols(
+    Vec4::new(1.0, 0.0, 0.0, 0.0),
+    Vec4::new(0.0, 1.0, 0.0, 0.0),
+    Vec4::new(0.0, 0.0, 0.5, 0.0),
+    Vec4::new(0.0, 0.0, 0.5, 1.0),
 );
 
 pub trait Geometry {
@@ -41,9 +40,9 @@ pub trait RenderPass {
 }
 
 pub struct Camera {
-    pub eye: Point3<f32>,
-    pub center: Point3<f32>,
-    pub up: Vector3<f32>,
+    pub eye: Vec3,
+    pub center: Vec3,
+    pub up: Vec3,
     pub aspect: f32,
     pub fovy: f32,
     pub znear: f32,
@@ -51,9 +50,9 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn build_view_projection_matrix(&self, model_transformation: Matrix4<f32>) -> Matrix4<f32> {
-        let view = Matrix4::look_at_rh(self.eye, self.center, self.up);
-        let proj = perspective(Deg(self.fovy), self.aspect, self.znear, self.zfar);
+    pub fn build_view_projection_matrix(&self, model_transformation: Mat4) -> Mat4 {
+        let view = Mat4::look_at_rh(self.eye, self.center, self.up);
+        let proj = Mat4::perspective_rh(self.fovy.to_radians(), self.aspect, self.znear, self.zfar);
         proj * view * model_transformation
     }
 }
@@ -83,7 +82,7 @@ impl D3Pass {
         render_front_face: bool,
         camera: &Camera,
         sample_cnt: NonZeroU32,
-        cube_transformation: Matrix4<f32>,
+        cube_transformation: Mat4,
     ) -> Self {
         let sample_count = sample_cnt.get();
         let enable_multisample = sample_count > 1;
@@ -120,7 +119,7 @@ impl D3Pass {
         uniforms.update_model_view_proj(camera, cube_transformation);
         let uniform_buffer = device.create_buffer_init(&util::BufferInitDescriptor {
             label: Some("Uniform Buffer"),
-            contents: uniforms.as_std140().as_bytes(),
+            contents: bytemuck::bytes_of(&uniforms),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
         let uniform_bind_group_layout =
@@ -234,17 +233,13 @@ impl D3Pass {
 
     pub fn update_model_view_proj_uniform(
         &mut self,
-        model_transformation: Matrix4<f32>,
+        model_transformation: Mat4,
         camera: &Camera,
         queue: &Queue,
     ) {
         self.uniforms
             .update_model_view_proj(camera, model_transformation);
-        queue.write_buffer(
-            &self.uniform_buffer,
-            0,
-            self.uniforms.as_std140().as_bytes(),
-        );
+        queue.write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
     }
 }
 
@@ -513,7 +508,7 @@ impl CanvasPass {
         let uniforms = CanvasShaderUniforms::default();
         let uniform_buffer = device.create_buffer_init(&util::BufferInitDescriptor {
             label: Some("Uniform Buffer"),
-            contents: uniforms.as_std140().as_bytes(),
+            contents: bytemuck::bytes_of(&uniforms),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
         let uniform_bind_group_layout =
@@ -653,11 +648,7 @@ impl CanvasPass {
 
     pub fn set_uniforms(&mut self, uniforms: &CanvasShaderUniforms, queue: &Queue) {
         self.uniforms = *uniforms;
-        queue.write_buffer(
-            &self.uniform_buffer,
-            0,
-            self.uniforms.as_std140().as_bytes(),
-        );
+        queue.write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
     }
 }
 

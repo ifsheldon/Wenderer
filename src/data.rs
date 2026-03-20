@@ -1,7 +1,6 @@
 use crate::rendering::Camera;
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, SquareMatrix};
-use crevice::std140::AsStd140;
+use glam::Mat4;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
@@ -18,27 +17,27 @@ pub struct Vertex3 {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, AsStd140)]
+#[derive(Debug, Copy, Clone, Pod, Zeroable)]
 pub struct Uniforms {
-    model_view_proj: Matrix4<f32>,
+    model_view_proj: Mat4,
 }
 
 impl Default for Uniforms {
     fn default() -> Self {
         Self {
-            model_view_proj: Matrix4::identity(),
+            model_view_proj: Mat4::IDENTITY,
         }
     }
 }
 
 impl Uniforms {
-    pub fn update_model_view_proj(&mut self, camera: &Camera, model_transformation: Matrix4<f32>) {
+    pub fn update_model_view_proj(&mut self, camera: &Camera, model_transformation: Mat4) {
         self.model_view_proj = camera.build_view_projection_matrix(model_transformation);
     }
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, AsStd140)]
+#[derive(Debug, Copy, Clone, Pod, Zeroable)]
 pub struct CanvasShaderUniforms {
     pub step_size: f32,
     pub base_distance: f32,

@@ -20,17 +20,14 @@ impl Tex {
     }
 
     pub fn create_1d_texture_rgba8(
-        data: &[cgmath::Vector4<u8>],
+        data: &[[u8; 4]],
         device: &Device,
         queue: &Queue,
         label: &str,
     ) -> Self {
         let format = TextureFormat::Rgba8UnormSrgb;
         let length = data.len() as u32;
-        let flatten_data = data
-            .iter()
-            .flat_map(|v| vec![v.x, v.y, v.z, v.w])
-            .collect::<Vec<u8>>();
+        let flatten_data = data.iter().flat_map(|v| *v).collect::<Vec<u8>>();
         let size = Extent3d {
             width: length,
             height: 1,

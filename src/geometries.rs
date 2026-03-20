@@ -1,6 +1,6 @@
 use crate::data::{Vertex2, Vertex3};
 use crate::rendering::{Geometry, OPENGL_TO_WGPU_MATRIX};
-use cgmath::{Matrix4, Vector2, Vector3, Vector4};
+use glam::{Mat4, Vec2, Vec3, Vec4};
 use rayon::prelude::*;
 use std::mem::size_of;
 use wgpu::{
@@ -24,10 +24,9 @@ const DEFAULT_VERTEX_LAYOUT: VertexBufferLayout = VertexBufferLayout {
     ],
 };
 
-pub type V2 = Vector2<f32>;
-pub type V3 = Vector3<f32>;
-pub type V4 = Vector4<f32>;
-pub type Mat4 = Matrix4<f32>;
+pub type V2 = Vec2;
+pub type V3 = Vec3;
+pub type V4 = Vec4;
 
 pub struct Mesh2 {
     vertices: Vec<Vertex2>,
@@ -50,7 +49,7 @@ impl Mesh2 {
                 .par_iter()
                 .map(|v| {
                     let v = transform_mat * V4::new(v.x, v.y, v.z, 1.0);
-                    v.xyz() / v.w
+                    v.truncate() / v.w
                 })
                 .zip(attribs_2d)
                 .map(|(v, a)| Vertex2 {
@@ -138,7 +137,7 @@ impl Mesh3 {
                 .par_iter()
                 .map(|v| {
                     let v = transform_mat * V4::new(v.x, v.y, v.z, 1.0);
-                    v.xyz() / v.w
+                    v.truncate() / v.w
                 })
                 .zip(attribs_3d)
                 .map(|(v, a)| Vertex3 {

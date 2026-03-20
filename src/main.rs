@@ -1,8 +1,8 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
-use cgmath::Matrix4;
 use futures::executor::block_on;
+use glam::{Mat4, Vec3};
 use half::f16;
 use rayon::prelude::*;
 use wgpu::{
@@ -39,7 +39,7 @@ struct RenderState {
     size: PhysicalSize<u32>,
     camera: Camera,
     camera_controller: CameraController,
-    cube_scaling: Matrix4<f32>,
+    cube_scaling: Mat4,
     front_face_pass: D3Pass,
     front_face_render_buffer: Tex,
     back_face_pass: D3Pass,
@@ -101,9 +101,9 @@ impl RenderState {
         };
         // rendering configurations
         let camera = Camera {
-            eye: (0.0, -2.5, 1.0).into(),
-            center: (0.0, 0.0, 0.0).into(),
-            up: cgmath::Vector3::unit_z(),
+            eye: Vec3::new(0.0, -2.5, 1.0),
+            center: Vec3::new(0.0, 0.0, 0.0),
+            up: Vec3::Z,
             aspect: (size.width as f32) / (size.height as f32),
             fovy: 45.0,
             znear: 0.1,
@@ -123,11 +123,11 @@ impl RenderState {
         let mid_val = *dims.get(1).unwrap() as f32;
         let volume_texture =
             Tex::create_3d_texture_red_f16(&extent, &data_f16, &device, &queue, "Volume");
-        let cube_scaling = Matrix4::from_nonuniform_scale(
+        let cube_scaling = Mat4::from_scale(Vec3::new(
             x as f32 / mid_val,
             y as f32 / mid_val,
             z as f32 / mid_val,
-        );
+        ));
 
         // prepare front-face and back-face passes
         let face_buffer_format = TextureFormat::Rgba16Float; // filterable format with highest precision

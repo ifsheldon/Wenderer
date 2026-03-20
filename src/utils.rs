@@ -68,10 +68,9 @@ impl CameraController {
     }
 
     pub fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
         let forward = camera.center - camera.eye;
         let forward_norm = forward.normalize();
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         // Prevents glitching when camera gets too close to the
         // center of the scene.
@@ -86,7 +85,7 @@ impl CameraController {
 
         // Redo radius calc in case the up/ down is pressed.
         let forward = camera.center - camera.eye;
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         if self.is_right_pressed {
             // Rescale the distance between the target and eye so
@@ -177,7 +176,7 @@ pub fn load_volume_data<P: AsRef<Path>>(
     ((x, y, z), data, uint_data)
 }
 
-pub fn load_example_transfer_function() -> Vec<cgmath::Vector4<u8>> {
+pub fn load_example_transfer_function() -> Vec<[u8; 4]> {
     #[rustfmt::skip]
     static TF: [f32; 48] = [
         0.0, 0.0, 0.0, 0.0,
@@ -195,9 +194,14 @@ pub fn load_example_transfer_function() -> Vec<cgmath::Vector4<u8>> {
     ];
     TF[..]
         .chunks_exact(4)
-        .map(|x| cgmath::Vector4::new(x[0], x[1], x[2], x[3]))
-        .map(|v| v * (u8::MAX as f32))
-        .map(|v| cgmath::Vector4::new(v.x as u8, v.y as u8, v.z as u8, v.w as u8))
+        .map(|x| {
+            [
+                (x[0] * u8::MAX as f32) as u8,
+                (x[1] * u8::MAX as f32) as u8,
+                (x[2] * u8::MAX as f32) as u8,
+                (x[3] * u8::MAX as f32) as u8,
+            ]
+        })
         .collect()
 }
 
