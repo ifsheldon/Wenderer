@@ -25,6 +25,7 @@ For now, we have simple interactions:
 * Render Buffers
 * Multisampling
 * `wgsl` shaders
+* Ray jittering
 
 ## TODOs
 * Better camera
